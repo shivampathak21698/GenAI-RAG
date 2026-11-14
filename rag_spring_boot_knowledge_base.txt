@@ -1,0 +1,130 @@
+SPRING BOOT KNOWLEDGE BASE — RAG PRACTICE DOCUMENT
+Version: 1.0 | Purpose: Learning document chunking, embedding, retrieval, and grounded answers.
+This is a fictional training knowledge base. Configuration details and sample business policies are illustrative, not production defaults.
+
+============================================================
+SECTION 1 — JAVA AND SPRING BOOT OVERVIEW
+============================================================
+Java is a general-purpose programming language that supports object-oriented programming. Spring is a Java application framework with features such as dependency injection, transaction management, and web development support. Spring Boot builds on Spring and makes application setup easier through auto-configuration, starter dependencies, and embedded web servers.
+
+Spring Boot is commonly used to build REST APIs and microservices. A microservice is a small, independently deployable service that owns a focused business capability. For example, an e-commerce application might separate order processing, inventory, and payment processing into different services. Microservices can be deployed independently, but they introduce operational challenges such as network failures, service-to-service security, distributed tracing, and data consistency.
+
+SECTION 1.1 — EXAMPLE: ORDER SERVICE
+An Order Service accepts requests to create orders, validates business information, persists the order, and may publish an event for downstream systems. In a simple demonstration, the HTTP endpoint POST /orders creates a new order and returns an identifier. This example does not specify the deployment environment, database provider, or authentication scheme.
+
+============================================================
+SECTION 2 — DEPENDENCY INJECTION
+============================================================
+Dependency injection (DI) means that an object's dependencies are supplied to it rather than created directly inside the object. In Spring, the IoC container manages beans and can inject dependencies using constructors. Constructor injection is commonly recommended for mandatory dependencies because it makes dependencies explicit and facilitates unit testing.
+
+Example (conceptual Java):
+@Service
+class OrderService {
+    private final OrderRepository repository;
+    OrderService(OrderRepository repository) {
+        this.repository = repository;
+    }
+}
+
+The OrderService depends on OrderRepository. Spring can create or obtain the repository bean and pass it to the OrderService constructor. The @Service annotation marks the class as a candidate for component scanning. Dependency injection is not the same as creating a new object manually using 'new' inside the service.
+
+============================================================
+SECTION 3 — AUTO-CONFIGURATION
+============================================================
+Spring Boot auto-configuration attempts to configure application components based on the libraries present on the classpath, available beans, and application properties. For instance, when using a compatible web starter, Spring Boot can set up an embedded web server and Spring MVC infrastructure. Developers can override or customize many of these defaults.
+
+Auto-configuration does not mean that Spring Boot can infer every business requirement. Database credentials, access controls, and external integrations may still need explicit configuration. To examine why configurations were or were not applied, developers can use Spring Boot's condition evaluation report.
+
+============================================================
+SECTION 4 — REST API DESIGN
+============================================================
+A REST API exposes resources through HTTP. Common HTTP methods include GET for retrieval, POST for creation or processing, PUT for replacing a resource, PATCH for partial updates, and DELETE for removal. HTTP response statuses describe outcomes: 200 OK often indicates success, 201 Created often indicates resource creation, 400 Bad Request indicates an invalid request, 401 Unauthorized indicates missing or invalid authentication credentials, and 404 Not Found indicates that a resource does not exist.
+
+API contracts should define request and response formats, validation requirements, and error structures. In a Spring Boot project, @RestController marks a class whose handler methods typically return response bodies; @GetMapping and @PostMapping map HTTP requests to Java methods.
+
+SECTION 4.1 — ORDER EXAMPLE
+POST /orders with JSON body {"productId": "P100", "quantity": 2} may return HTTP 201 with {"orderId": "O501", "status": "CREATED"}. These IDs are invented examples for practice. A GET /orders/O501 request could return the saved order details.
+
+============================================================
+SECTION 5 — TRANSACTIONS AND DATA CONSISTENCY
+============================================================
+In Spring applications, @Transactional can define a transactional boundary around an eligible method. A transaction groups database operations so that they can commit together or roll back under configured conditions. By default, Spring's declarative transaction handling typically rolls back for unchecked exceptions, but behavior can be customized.
+
+A transaction within a single database is not the same as a distributed transaction across multiple independent microservices. Consider an Order Service creating an order and a Payment Service charging a card: if the payment succeeds but the order update fails, the system may require compensating actions, retries, and idempotency. A saga is one pattern for coordinating these multi-service workflows.
+
+============================================================
+SECTION 6 — MESSAGING WITH KAFKA
+============================================================
+Kafka is a distributed event streaming platform. Producers publish records to topics, and consumers read records from topic partitions. Within a consumer group, partitions are assigned to group members so that each partition is consumed by one member of that group at a time. Different consumer groups can independently process the same topic.
+
+An Order Service can publish an OrderCreated event. An Inventory Service may consume the event to reserve stock, while a Notification Service may consume it through another group to send an acknowledgment. Event consumers should consider retries, duplicate delivery, idempotent processing, and observability. Kafka does not automatically guarantee that every downstream business action is performed exactly once.
+
+============================================================
+SECTION 7 — CACHING
+============================================================
+A cache stores frequently accessed data to reduce repeated work and improve response times. Spring's cache abstraction supports annotations such as @Cacheable and @CacheEvict. A cache may have a time-to-live (TTL), after which entries expire. A cache stampede happens when many requests simultaneously try to recompute or fetch an expired popular value.
+
+Caching introduces consistency questions. If a product price changes in the database but an older price remains in a cache, users may see stale data. Cache invalidation, sensible TTLs, and appropriate consistency requirements are important.
+
+============================================================
+SECTION 8 — SECURITY
+============================================================
+Authentication verifies who a caller is; authorization determines what that caller is allowed to do. In an API, a bearer token may carry claims used to validate an authenticated caller, but applications must verify signatures, expiration, issuer, and other applicable conditions. Authorization should also be checked for specific resources, not merely whether a token exists.
+
+Never store real API keys, passwords, production tokens, or confidential customer records in a public RAG practice document. A retrieval system must enforce document access permissions before sending retrieved data to a language model.
+
+============================================================
+SECTION 9 — OBSERVABILITY AND RESILIENCE
+============================================================
+Logging records noteworthy events, metrics track numeric measurements, and distributed tracing follows requests across service boundaries. These signals are complementary: logs explain specific events, metrics reveal trends such as latency and error rates, and traces help locate slow or failing calls across multiple services.
+
+Resilience patterns include timeouts, retries with backoff, circuit breakers, and bulkheads. Retrying every error indiscriminately can make incidents worse. A circuit breaker can temporarily stop calls to a failing dependency and allow recovery checks after a waiting period.
+
+============================================================
+SECTION 10 — FICTIONAL TEAM POLICIES FOR EXACT-ANSWER TESTS
+============================================================
+The following rules belong ONLY to a fictional sample team named Orion. They are deliberately specific so you can test exact fact retrieval.
+
+Policy OR-101 — Pull request review: Orion requires two approvals before a production branch pull request may be merged.
+Policy OR-102 — Build pipeline: Orion runs unit tests, static analysis, and integration tests before the deployment approval stage.
+Policy OR-103 — Incident response: Orion classifies a complete payment-processing outage as Severity 1 (SEV-1).
+Policy OR-104 — Log retention: Orion retains application logs for 21 days in the training scenario.
+Policy OR-105 — Release window: Orion's routine production deployment window is Thursday from 20:00 to 22:00 UTC.
+Policy OR-106 — Database changes: Orion requires backward-compatible database schema migrations before an application rollout.
+Policy OR-107 — Service ownership: The Payments Team owns the Payment Service; the Orders Team owns the Order Service.
+Policy OR-108 — Recovery objective: Orion targets a recovery time objective (RTO) of 45 minutes for its fictional Order Service.
+
+============================================================
+SECTION 11 — FREQUENTLY ASKED QUESTIONS
+============================================================
+Q: Is Spring Boot a programming language?
+A: No. Spring Boot is a framework built on the Spring ecosystem and commonly used with Java.
+
+Q: What does constructor injection improve?
+A: It makes required dependencies explicit and generally improves testability.
+
+Q: Are microservices always faster than monoliths?
+A: No. They may add network calls and operational complexity. Their benefits depend on the application's needs.
+
+Q: How many pull request approvals does Orion require?
+A: Two approvals for a production branch pull request.
+
+Q: How long does Orion keep application logs?
+A: In this fictional training example, 21 days.
+
+Q: Does this document specify an AWS region for Orion?
+A: No. The sample document does not define an AWS region.
+
+============================================================
+SECTION 12 — CHUNKING EDGE CASES
+============================================================
+EDGE CASE A — SHORT SENTENCE
+Hello.
+
+EDGE CASE B — LONG RELATED PARAGRAPH
+An order is created after request validation and persistence. The system may publish an event to Kafka, where inventory and notification consumers independently process it. If a consumer fails, a retry policy must consider duplicate event delivery. Idempotency can help ensure that retrying an order-related operation does not cause a duplicate charge or repeated inventory reservation. Observability can connect the original HTTP request to downstream message processing, but a complete solution requires a consistent correlation identifier, careful logging, and handling of operations that cross transaction boundaries.
+
+EDGE CASE C — NEIGHBORING UNRELATED TOPICS
+Java supports object-oriented programming. Banana cultivation requires suitable soil and climate. A circuit breaker limits requests to a failing service. These three statements are intentionally unrelated and should not be treated as a single coherent answer source.
+
+END OF DOCUMENT

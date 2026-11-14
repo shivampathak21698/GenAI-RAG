@@ -1,0 +1,48 @@
+RAG RETRIEVAL PRACTICE — TEST QUESTIONS
+Use the companion rag_spring_boot_knowledge_base.txt as the sole knowledge source.
+
+QUESTIONS WITH GROUNDED ANSWERS
+1. What is Spring Boot commonly used for?
+   Expected: Building REST APIs and microservices. Source: Section 1.
+2. How does constructor injection help unit testing?
+   Expected: Makes dependencies explicit and easier to substitute for tests. Source: Section 2.
+3. What determines Spring Boot's auto-configuration?
+   Expected: Classpath libraries, existing beans, and properties. Source: Section 3.
+4. Which HTTP status is commonly returned after creating an order?
+   Expected: 201 Created. Source: Section 4.
+5. Does @Transactional solve a distributed transaction across services by itself?
+   Expected: No; multi-service workflows need additional coordination. Source: Section 5.
+6. Can different Kafka consumer groups process the same topic?
+   Expected: Yes. Source: Section 6.
+7. What is a cache stampede?
+   Expected: Concurrent requests recompute/refetch an expired popular item. Source: Section 7.
+8. What's the difference between authentication and authorization?
+   Expected: Identity verification vs permission checking. Source: Section 8.
+9. What does a circuit breaker do?
+   Expected: Temporarily stop calls to a failing dependency. Source: Section 9.
+10. How many approvals does Orion require for a production pull request?
+    Expected: Two. Source: Policy OR-101.
+11. How long does Orion retain logs?
+    Expected: 21 days. Source: Policy OR-104.
+12. When is Orion's routine production deployment window?
+    Expected: Thursday 20:00–22:00 UTC. Source: Policy OR-105.
+13. Which team owns the Payment Service?
+    Expected: Payments Team. Source: Policy OR-107.
+14. What is Orion's Order Service RTO?
+    Expected: 45 minutes. Source: Policy OR-108.
+
+QUESTIONS THAT SHOULD NOT BE ANSWERED FROM THIS DOCUMENT
+15. What is Orion's AWS production region?
+    Expected: Not specified.
+16. Who won the 2022 FIFA World Cup?
+    Expected: Not present in the source; do not answer from general model knowledge.
+17. What is the company's actual production database password?
+    Expected: Not present; never invent.
+
+CHUNKING EXPERIMENTS
+- Compare chunk_size=150, 350, and 700 characters with overlap=0 and overlap=50.
+- Print each chunk with its number of characters and note whether it starts/ends mid-sentence.
+- Test retrieval with n_results=1, 2, and 4.
+- Compare retrieved passages for each question against the expected source section.
+- Observe if a chunk mixes unrelated topics or splits a related explanation across chunks.
+- For questions 15–17, examine why top-k still returns near matches and why a no-answer rule is required.
