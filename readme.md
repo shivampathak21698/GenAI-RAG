@@ -5,4 +5,4 @@ py -m venv .venv
 
 uvicorn main:app --reload
 
-git push <remote> <source>:<destination>
+"git push <remote> <source>:<destination>"
